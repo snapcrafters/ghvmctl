@@ -5,9 +5,37 @@ on:
     branches: [ "**" ]
 
 jobs:
-  build:
+  build-test:
     name: 🧪 Build snap on amd64
     runs-on: ubuntu-latest
     steps:
       - name: 🧪 Build snap on amd64
+        id: snap
         uses: jnsgruk/snapcrafters-ci/test-snap-build@initial-build
+
+      - name: Enable KVM on the Github Actions runner
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Setup LXD
+        uses: canonical/setup-lxd@v0.1.1
+
+      - name: Setup ghvmctl
+        run: |
+          sudo snap install --dangerous ${{ steps.snap.outputs.snap }}
+          sudo snap connect ghvmctl:lxd lxd:lxd
+      
+      - name: Test ghvmctl
+        run: |
+          ghvmctl prepare
+
+          ghvmctl install-snap signal-desktop --channel candidate
+          ghvmctl install-snap terraform --revision 584
+          ghvmctl install-snap kubectl
+
+          ghvmctl run-snap signal-desktop
+          ghvmctl screenshot-full
+          ghvmctl screenshot-window
+          ghvmctl exec "cat /home/ubuntu/signal-desktop.log"
