@@ -59,7 +59,46 @@ screenshot_window() {
 
 # Print the usage statement and exit the program
 usage() {
-	echo "Usage: ghvmctl [prepare | push-snap <file> | exec <string> | screenshot-full | screenshot-window"]
+	cat <<EOF
+ghvmctl is a utility for manipulating virtual machines during snap testing.
+
+USAGE:
+	ghvmctl <SUBCOMMAND> [OPTIONS]
+
+SUBCOMMANDS:
+	prepare
+		Launches a new virtual machine, and prepares it for snap testing.
+
+	exec
+		Runs a command inside the virtual machine.
+
+		Examples:
+		  ghvmctl exec "cat /etc/hostname"
+		  ghvmctl exec "sudo apt update"
+
+	install-snap <snap name> [-c|--channel <channel>] [-r|--revision <revision>]
+		Installs the specified snap inside the VM.
+
+		Examples:
+		  ghvmctl install snap terraform
+		  ghvmctl install snap signal-desktop --channel candidate
+		  ghvmctl install snap signal-desktop --revision 554
+
+	run-snap <snap name>
+		Runs the specified snap inside the VM. Outputs stdout/stderr to a file
+		inside the VM at /home/ubuntu/<snap name>.log.
+
+		Examples:
+		  ghvmctl run-snap signal-desktop
+
+	screenshot-full
+		Takes a full-screen screenshot of the virtual machine. Places the output
+		at ~/ghvmctl-screenshots
+
+	screenshot-window
+		Takes a screenshot of the active window in the virtual machine. Places the output
+		at ~/ghvmctl-screenshots
+EOF
 	exit 1
 }
 
@@ -76,6 +115,36 @@ case "$command" in
 	;;
 "exec")
 	exec_in_vm "$@"
+	;;
+"run-snap")
+	exec_in_vm "snap run $1 &>/home/ubuntu/$1.log &"
+	;;
+"install-snap")
+	snap_name="$1"
+	shift
+
+	if ! VALID_ARGS=$(getopt -o c:r --long name:,channel:,revision: -- "$@"); then
+		usage
+	fi
+
+	eval set -- "$VALID_ARGS"
+	while true; do
+		case "$1" in
+			-c | --channel)
+				exec_in_vm "sudo snap install $snap_name --channel $2 --classic"
+				shift 2
+				;;
+			-r | --revision)
+				exec_in_vm "sudo snap install $snap_name --revision $2 --classic"
+				shift 2
+				;;
+			--)
+				exec_in_vm "sudo snap install $snap_name --classic"
+				shift
+				break
+				;;
+		esac
+	done
 	;;
 "screenshot-full")
 	screenshot_full

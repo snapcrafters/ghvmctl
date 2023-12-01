@@ -42,13 +42,14 @@ jobs:
         run: |
           # Prepare the VM, install and launch the app on the desktop
           ghvmctl prepare
-          ghvmctl exec "sudo snap install signal-desktop --channel candidate"
-          ghvmctl exec "snap run signal-desktop &>/home/ubuntu/signal.log &"
+          ghvmctl install-snap signal-desktop --channel candidate
+          ghvmctl run-snap signal-desktop
 
-      - name: Take screenshots
+      - name: Take screenshots & output logs
         run: |
           ghvmctl screenshot-full
           ghvmctl screenshot-window
+          ghvmctl exec "cat /home/ubuntu/signal-desktop.log"
 
       - name: Upload screenshots
         uses: actions/upload-artifact@v3.1.3
