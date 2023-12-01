@@ -6,12 +6,15 @@ on:
 
 jobs:
   build-test:
-    name: 🧪 Build snap on amd64
+    name: Build & Test
     runs-on: ubuntu-latest
     steps:
-      - name: 🧪 Build snap on amd64
+      - name: Checkout the source
+        uses: actions/checkout@v4
+
+      - name: Build snap on amd64
         id: snap
-        uses: jnsgruk/snapcrafters-ci/test-snap-build@initial-build
+        uses: snapcore/action-build@v1
 
       - name: Enable KVM on the Github Actions runner
         run: |
