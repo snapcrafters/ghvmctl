@@ -12,11 +12,47 @@ A utility for creating and manipulating desktop virtual machines using LXD, prim
 installing and running desktop applications in CI pipelines so that screenshots can be gathered
 automatically as part of the QA process.
 
-## Install
+## Install the snap
 
     sudo snap install ghvmctl
     sudo snap connect ghvmctl:lxd lxd:lxd
 
-[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/ghvmctl)
-
 ([Don't have snapd installed?](https://snapcraft.io/docs/core/install))
+
+## Use the Github Action
+
+A simple Github Action for configuring [ghvmctl](https://github.com/jnsgruk/ghvmctl) for use on
+Github Actions runners is also included in this repository. It has three major functions:
+
+- Enable KVM on the runner
+- Install and initialise LXD
+- Install and configure `ghvmctl`
+
+The Github Action can be used like so:
+
+```yaml
+jobs:
+  clever-vm-action:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup ghvmctl
+        uses: jnsgruk/ghvmctl/setup-ghvmctl@main
+
+      - name: Prepare test environment
+        run: |
+          # Prepare the VM, install and launch the app on the desktop
+          ghvmctl prepare
+          ghvmctl exec "sudo snap install signal-desktop --channel candidate"
+          ghvmctl exec "snap run signal-desktop &>/home/ubuntu/signal.log &"
+
+      - name: Take screenshots
+        run: |
+          ghvmctl screenshot-full
+          ghvmctl screenshot-window
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v3.1.3
+        with:
+          name: "screenshots"
+          path: "~/ghvmctl-screenshots/*.png"
+```
