@@ -1,6 +1,6 @@
 <h1 align="center">ghvmctl</h1>
 
-<p align="center"><b>This is the snap for `ghvmctl`</b>, <i>“Easily create and manage desktop VMs for testing snap packages in CI.”</i>.
+<p align="center"><i>"Easily create and manage desktop VMs for testing snap packages in CI"</i>
 
 <p align="center"><a href="https://snapcraft.io/ghvmctl"><img src="https://snapcraft.io/ghvmctl/badge.svg" alt="ghvmctl badge"/></a></p>
 
