@@ -11,7 +11,7 @@ VM_DISK_GIB="${VM_DISK_GIB:=12}"
 # Starts a desktop VM and waits for the agent to be running inside.
 prepare_vm() {
 	# Start the VM
-	lxc launch "images:ubuntu/${VM_SERIES}/desktop" "${VM_NAME}" --vm \
+	lxc launch -q "images:ubuntu/${VM_SERIES}/desktop" "${VM_NAME}" --vm \
 		-c limits.cpu="${VM_CPUS}" -c limits.memory="${VM_MEM_GIB}GiB" -d root,size="${VM_DISK_GIB}GiB"
 
 	# Wait for the VM agent to be running
@@ -20,12 +20,12 @@ prepare_vm() {
 	done
 
 	# Push script runner into the VM
-	lxc file push "${SNAP}/opt/ghvmctl/ghvmctl-runner" test-vm/bin/ghvmctl-runner
+	lxc -q file push "${SNAP}/opt/ghvmctl/ghvmctl-runner" test-vm/bin/ghvmctl-runner
 	lxc exec test-vm -- chmod 755 /bin/ghvmctl-runner
 
 	# Install gnome-screenshot
-	lxc exec test-vm -- apt-get update
-	lxc exec test-vm -- apt-get install -y gnome-screenshot
+	lxc exec test-vm -- apt-get update -qq
+	lxc exec test-vm -- apt-get install -qq -y gnome-screenshot
 
 	# Kill the gnome initial setup wizard
 	pid="$(lxc exec test-vm -- pidof gnome-initial-setup)"
