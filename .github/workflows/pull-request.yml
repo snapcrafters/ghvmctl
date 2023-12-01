@@ -1,0 +1,13 @@
+name: Pull Request
+
+on:
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+  build:
+    name: 🧪 Build snap on amd64
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🧪 Build snap on amd64
+        uses: jnsgruk/snapcrafters-ci/test-snap-build@initial-build
