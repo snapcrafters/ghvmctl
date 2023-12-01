@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
+export WAYLAND_DISPLAY=wayland-0
+export DISPLAY=:0.0
+export HOME=/home/ubuntu
+
+exec "$@"

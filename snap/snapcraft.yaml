@@ -1,0 +1,48 @@
+name: ghvmctl
+version: 0.1.0
+summary: A utility for manipulating virtual machines during snap testing.
+license: Apache-2.0
+contact: https://github.com/jnsgruk/ghvmctl/issues
+issues: https://github.com/jnsgruk/ghvmctl/issues
+source-code: https://github.com/jnsgruk/ghvmctl
+description: |
+  A utility for creating and manipulating desktop virtual machines
+  using LXD, primarily for installing and running desktop applications
+  in CI pipelines so that screenshots can be gathered automatically
+  as part of the QA process.
+
+  Before this snap is functional, you must run:
+
+      sudo snap connect ghvmctl:lxd lxd:lxd
+
+  More information at: https://github.com/snapcrafters/ci
+base: core22
+grade: stable
+confinement: strict
+compression: lzo
+architectures: [amd64]
+
+apps:
+  ghvmctl:
+    command: opt/ghvmctl/ghvmctl
+    environment:
+      LXD_DIR: /var/snap/lxd/common/lxd
+    plugs:
+      - home
+      - lxd
+
+parts:
+  lxd:
+    source: https://github.com/canonical/lxd
+    source-type: git
+    build-snaps:
+      - go
+    plugin: nil
+    override-build: |
+      mkdir "${CRAFT_PART_INSTALL}/bin"
+      go build -o "${CRAFT_PART_INSTALL}/bin/lxc" ./lxc
+
+  local-parts:
+    plugin: dump
+    source: ./snap/local
+    source-type: local
