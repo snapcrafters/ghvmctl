@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+info() { echo -e "\e[92m[+] $@\e[0m"; }
+
 # Default VM attributes - tuned for Github Actions runners by default
 VM_NAME="${VM_NAME:-test-vm}"
 VM_SERIES="${VM_SERIES:-22.04}"
@@ -10,22 +12,25 @@ VM_DISK_GIB="${VM_DISK_GIB:=12}"
 
 # Starts a desktop VM and waits for the agent to be running inside.
 prepare_vm() {
-	# Start the VM
+	info "Launching VM '${VM_NAME}' with LXD"
 	lxc launch -q "images:ubuntu/${VM_SERIES}/desktop" "${VM_NAME}" --vm \
-		-c limits.cpu="${VM_CPUS}" -c limits.memory="${VM_MEM_GIB}GiB" -d root,size="${VM_DISK_GIB}GiB"
+		-c limits.cpu="${VM_CPUS}" \
+		-c limits.memory="${VM_MEM_GIB}GiB" \
+		-d root,size="${VM_DISK_GIB}GiB"
 
 	# Wait for the VM agent to be running
 	while ! lxc exec test-vm -- cat /etc/hostname &>/dev/null; do
 		sleep 2
 	done
 
+	info "Installing utilities in VM"
+
 	# Push script runner into the VM
 	lxc -q file push "${SNAP}/opt/ghvmctl/ghvmctl-runner" test-vm/bin/ghvmctl-runner
 	lxc exec test-vm -- chmod 755 /bin/ghvmctl-runner
 
-	# Install gnome-screenshot
 	lxc exec test-vm -- apt-get update -qq
-	lxc exec test-vm -- apt-get install -qq -y gnome-screenshot
+	lxc exec test-vm -- apt-get install -y gnome-screenshot
 
 	# Kill the gnome initial setup wizard
 	pid="$(lxc exec test-vm -- pidof gnome-initial-setup)"
@@ -40,6 +45,7 @@ exec_in_vm() {
 # Takes a screenshot of the full screen and pulls the file back from the VM to a file
 # named "screenshot-screen.png", and uploads to imgur, returning the URL
 screenshot_full() {
+	info "Taking a screenshot of the full screen inside the VM"
 	mkdir -p "${SNAP_REAL_HOME}/ghvmctl-screenshots"
 	# Take a screenshot of the whole screen in the VM
 	exec_in_vm "gnome-screenshot -f /home/ubuntu/screen.png"
@@ -50,6 +56,7 @@ screenshot_full() {
 # Takes a screenshot of the active window and pulls the file back from the VM to a file
 # named "screenshot-window.png", and uploads to imgur, returning the URL
 screenshot_window() {
+	info "Taking a screenshot of the active window inside the VM"
 	mkdir -p "${SNAP_REAL_HOME}/ghvmctl-screenshots"
 	# Take a screenshot of the active window in the VM
 	exec_in_vm "gnome-screenshot -w -f /home/ubuntu/window.png"

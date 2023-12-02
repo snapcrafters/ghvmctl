@@ -44,5 +44,8 @@ parts:
 
   local-parts:
     plugin: dump
-    source: ./snap/local
+    source: ./src
     source-type: local
+    organize: 
+      ghvmctl: opt/ghvmctl/ghvmctl
+      ghvmctl-runner: opt/ghvmctl/ghvmctl-runner
