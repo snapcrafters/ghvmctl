@@ -12,26 +12,24 @@ jobs:
       - name: Checkout the source
         uses: actions/checkout@v4
 
-      - name: Build snap on amd64
-        id: snap
-        uses: snapcore/action-build@v1
-
       - name: Enable KVM on the Github Actions runner
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      - name: Build snap
+        uses: snapcrafters/ci/test-snap-build@main
+        with:
+          install: true
+
       - name: Setup LXD
         uses: canonical/setup-lxd@v0.1.1
 
-      - name: Setup ghvmctl
-        run: |
-          sudo snap install --dangerous ${{ steps.snap.outputs.snap }}
-          sudo snap connect ghvmctl:lxd lxd:lxd
-      
       - name: Test ghvmctl
         run: |
+          sudo snap connect ghvmctl:lxd lxd:lxd
+
           ghvmctl prepare
 
           ghvmctl install-snap signal-desktop --channel candidate
