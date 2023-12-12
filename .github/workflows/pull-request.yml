@@ -37,6 +37,15 @@ jobs:
           ghvmctl install-snap kubectl
 
           ghvmctl run-snap signal-desktop
+          sleep 2
           ghvmctl screenshot-full
           ghvmctl screenshot-window
+          ls -lht "$HOME"/ghvmctl-screenshots
           ghvmctl exec "cat /home/ubuntu/signal-desktop.log"
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v3
+        with:
+          name: screenshots
+          path: ~/ghvmctl-screenshots
+          if-no-files-found: error
