@@ -22,11 +22,19 @@ prepare_vm() {
 		-d root,size="${VM_DISK_GIB}GiB"
 
 	# Wait for the VM agent to be running
-	while ! lxc exec "${VM_NAME}" -- cat /etc/hostname &>/dev/null; do
-		sleep 2
+	while ! lxc exec "${VM_NAME}" -- true 2>/dev/null; do
+		sleep 1
 	done
 
 	info "Installing utilities in VM"
+
+	# Try avoid gnome-initial-setup to start.
+	lxc exec "${VM_NAME}" -- runuser -u ubuntu -- \
+		sh -c 'echo yes > ~/.config/gnome-initial-setup-done'
+	lxc exec "${VM_NAME}" -- sh -c \
+		'rm /usr/lib/systemd/user/gnome-session.target.wants/gnome-initial-setup*'
+	lxc exec "${VM_NAME}" -- sh -c \
+		'rm /etc/xdg/autostart/gnome-initial-setup*'
 
 	# Push script runner into the VM
 	lxc -q file push "${GHVMCTL_RUNNER_PATH}/ghvmctl-runner" \
@@ -38,9 +46,8 @@ prepare_vm() {
 	lxc exec "${VM_NAME}" -- apt-get update -qq
 	lxc exec "${VM_NAME}" -- apt-get install -q gnome-screenshot
 
-	# Kill the gnome initial setup wizard
-	pid="$(lxc exec "${VM_NAME}" -- pidof gnome-initial-setup)"
-	lxc exec "${VM_NAME}" -- kill -9 "$pid"
+	# Ensure initial-setup is not running, keep this last thing.
+	exec_in_vm systemctl --user stop "gnome-initial-setup*"
 }
 
 # Exec a command in the VM using the wrapper.
