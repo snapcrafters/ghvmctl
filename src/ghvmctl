@@ -21,27 +21,27 @@ prepare_vm() {
 		-d root,size="${VM_DISK_GIB}GiB"
 
 	# Wait for the VM agent to be running
-	while ! lxc exec test-vm -- cat /etc/hostname &>/dev/null; do
+	while ! lxc exec "${VM_NAME}" -- cat /etc/hostname &>/dev/null; do
 		sleep 2
 	done
 
 	info "Installing utilities in VM"
 
 	# Push script runner into the VM
-	lxc -q file push "${SNAP}/opt/ghvmctl/ghvmctl-runner" test-vm/bin/ghvmctl-runner
-	lxc exec test-vm -- chmod 755 /bin/ghvmctl-runner
+	lxc -q file push "${SNAP}/opt/ghvmctl/ghvmctl-runner" "${VM_NAME}/bin/ghvmctl-runner"
+	lxc exec "${VM_NAME}" -- chmod 755 /bin/ghvmctl-runner
 
-	lxc exec test-vm -- apt-get update -qq
-	lxc exec test-vm -- apt-get install -y gnome-screenshot
+	lxc exec "${VM_NAME}" -- apt-get update -qq
+	lxc exec "${VM_NAME}" -- apt-get install -y gnome-screenshot
 
 	# Kill the gnome initial setup wizard
-	pid="$(lxc exec test-vm -- pidof gnome-initial-setup)"
-	lxc exec test-vm -- kill -9 "$pid"
+	pid="$(lxc exec "${VM_NAME}" -- pidof gnome-initial-setup)"
+	lxc exec "${VM_NAME}" -- kill -9 "$pid"
 }
 
 # Exec a command in the VM using the wrapper.
 exec_in_vm() {
-	lxc exec test-vm -- sudo -u ubuntu bash -c "/bin/ghvmctl-runner $*"
+	lxc exec "${VM_NAME}" -- sudo -u ubuntu bash -c "/bin/ghvmctl-runner $*"
 }
 
 # Takes a screenshot of the full screen and pulls the file back from the VM to a file
