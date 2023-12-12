@@ -40,6 +40,7 @@ jobs:
           sleep 2
           ghvmctl screenshot-full
           ghvmctl screenshot-window
+          ghvmctl screenshot-full
           ls -lht "$HOME"/ghvmctl-screenshots
           ghvmctl exec "cat /home/ubuntu/signal-desktop.log"
 
