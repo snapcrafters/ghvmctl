@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-info() { echo -e "\e[92m[+] $@\e[0m"; }
+info() { echo -e "\e[92m[+] $*\e[0m"; }
 
 # Default VM attributes - tuned for Github Actions runners by default
 VM_NAME="${VM_NAME:-test-vm}"
