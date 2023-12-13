@@ -43,4 +43,12 @@ jobs:
           ghvmctl snap-run signal-desktop
           ghvmctl screenshot-full
           ghvmctl screenshot-window
+
+          ghvmctl snap-is-running signal-desktop
+          ghvmctl snap-is-running terraform && exit 1 || true
+
+          ghvmctl snap-terminate signal-desktop
+          ghvmctl snap-is-running signal-desktop && exit 1 || true
+          ghvmctl snap-kill kubectl && exit 1 || true
+
           ghvmctl exec "cat /home/ubuntu/signal-desktop.log"
