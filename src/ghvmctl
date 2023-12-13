@@ -169,7 +169,9 @@ case "$command" in
 		echo "$1 is already running"
 		exit 1
 	fi
-	exec_in_vm "snap run $1 &>/home/ubuntu/$1.log &"
+	exec_in_vm "snap run $1 &>~/$1.log & proc=\$!;"\
+		"sleep 3 && kill -0 \$proc &>/dev/null || wait \$proc ||"\
+		"(echo running $1 failed; cat ~/$1.log; exit 1)"
 	;;
 "snap-install"|"install-snap")
 	check_deprecated_command "$command"
