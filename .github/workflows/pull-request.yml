@@ -32,11 +32,15 @@ jobs:
 
           ghvmctl prepare
 
-          ghvmctl install-snap signal-desktop --channel candidate
-          ghvmctl install-snap terraform --revision 584
-          ghvmctl install-snap kubectl
+          ghvmctl snap-install signal-desktop --channel candidate
+          ghvmctl snap-install terraform --revision 584
+          ghvmctl snap-install kubectl
 
-          ghvmctl run-snap signal-desktop
+          # Check deprecated commands
+          ghvmctl install-snap hello
+          ghvmctl run-snap hello
+
+          ghvmctl snap-run signal-desktop
           ghvmctl screenshot-full
           ghvmctl screenshot-window
           ghvmctl exec "cat /home/ubuntu/signal-desktop.log"
