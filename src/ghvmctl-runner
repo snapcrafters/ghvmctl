@@ -1,8 +1,24 @@
 #!/usr/bin/env bash
 
-export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
-export WAYLAND_DISPLAY=wayland-0
-export DISPLAY=:0.0
-export HOME=/home/ubuntu
+function duplicate_env() {
+    local env_match="$1"
+    matches="$(systemctl --user show-environment | awk -F= "/$env_match/ { print \$0; }")"
+    for m in $matches; do
+        export "${m?}";
+    done
+}
+
+XDG_RUNTIME_DIR="/run/user/$(id -u)"
+export XDG_RUNTIME_DIR
+
+duplicate_env "^DBUS_*"
+duplicate_env "^DISPLAY="
+duplicate_env "^HOME="
+duplicate_env "^WAYLAND_DISPLAY="
+duplicate_env "^XDG_*"
+
+if [ "$XDG_SESSION_TYPE" = "wayland" ] && [ -z "$DISPLAY" ]; then
+    export DISPLAY=:0
+fi
 
 exec "$@"
