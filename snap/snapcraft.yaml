@@ -35,6 +35,7 @@ parts:
   lxd:
     source: https://github.com/canonical/lxd
     source-type: git
+    source-depth: 1
     build-snaps:
       - go
     plugin: nil
@@ -46,6 +47,6 @@ parts:
     plugin: dump
     source: ./src
     source-type: local
-    organize: 
+    organize:
       ghvmctl: opt/ghvmctl/ghvmctl
       ghvmctl-runner: opt/ghvmctl/ghvmctl-runner
