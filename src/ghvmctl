@@ -10,7 +10,8 @@ VM_CPUS="${VM_CPUS:=1}"
 VM_MEM_GIB="${VM_MEM_GIB:=6}"
 VM_DISK_GIB="${VM_DISK_GIB:=12}"
 
-SCREENSHOTS_PATH="${SNAP_REAL_HOME}/ghvmctl-screenshots"
+GHVMCTL_RUNNER_PATH="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+SCREENSHOTS_PATH="${SNAP_REAL_HOME:-$PWD}/ghvmctl-screenshots"
 
 # Starts a desktop VM and waits for the agent to be running inside.
 prepare_vm() {
@@ -28,7 +29,8 @@ prepare_vm() {
 	info "Installing utilities in VM"
 
 	# Push script runner into the VM
-	lxc -q file push "${SNAP}/opt/ghvmctl/ghvmctl-runner" "${VM_NAME}/bin/ghvmctl-runner"
+	lxc -q file push "${GHVMCTL_RUNNER_PATH}/ghvmctl-runner" \
+		"${VM_NAME}/bin/ghvmctl-runner"
 	lxc exec "${VM_NAME}" -- chmod 755 /bin/ghvmctl-runner
 
 	lxc exec "${VM_NAME}" -- apt-get update -qq
