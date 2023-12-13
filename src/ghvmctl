@@ -46,6 +46,10 @@ prepare_vm() {
 	lxc exec "${VM_NAME}" -- apt-get update -qq
 	lxc exec "${VM_NAME}" -- apt-get install -q gnome-screenshot
 
+	info "Configuring VM user settings"
+	exec_in_vm gsettings set org.gnome.desktop.lockdown disable-lock-screen true
+	exec_in_vm gsettings set org.gnome.desktop.session idle-delay 0
+
 	# Ensure initial-setup is not running, keep this last thing.
 	exec_in_vm systemctl --user stop "gnome-initial-setup*"
 }
