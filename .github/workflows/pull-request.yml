@@ -28,6 +28,7 @@ jobs:
 
       - name: Test ghvmctl
         run: |
+          set -xe
           sudo snap connect ghvmctl:lxd lxd:lxd
 
           ghvmctl prepare
