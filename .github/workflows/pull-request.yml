@@ -28,9 +28,14 @@ jobs:
 
       - name: Test ghvmctl
         run: |
+          set -xe
           sudo snap connect ghvmctl:lxd lxd:lxd
 
+          ghvmctl && exit 1 || true
+
           ghvmctl prepare
+
+          ghvmctl snap-run it-does-not-exist.hopefully && exit 1 || true
 
           ghvmctl snap-install signal-desktop --channel candidate
           ghvmctl snap-install terraform --revision 584
@@ -59,3 +64,13 @@ jobs:
           name: screenshots
           path: ~/ghvmctl-screenshots
           if-no-files-found: error
+
+  shellcheck:
+    name: Shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './src'
