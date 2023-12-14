@@ -91,7 +91,7 @@ SUBCOMMANDS:
 		  ghvmctl exec "cat /etc/hostname"
 		  ghvmctl exec "sudo apt update"
 
-	install-snap <snap name> [-c|--channel <channel>] [-r|--revision <revision>]
+	snap-install <snap name> [-c|--channel <channel>] [-r|--revision <revision>]
 		Installs the specified snap inside the VM.
 
 		Examples:
@@ -99,12 +99,34 @@ SUBCOMMANDS:
 		  ghvmctl install snap signal-desktop --channel candidate
 		  ghvmctl install snap signal-desktop --revision 554
 
-	run-snap <snap name>
+	snap-run <snap name>
 		Runs the specified snap inside the VM. Outputs stdout/stderr to a file
 		inside the VM at /home/ubuntu/<snap name>.log.
+		Only one instance of a single snap can run.
 
 		Examples:
 		  ghvmctl run-snap signal-desktop
+
+	snap-is-running <snap name>
+		Checks whether the provided snap is currently running.
+		Exits with a non-zero value if this is not the case.
+
+		Examples:
+		  ghvmctl snap-is-running signal-desktop
+
+	snap-terminate <snap name>
+		Terminates the provided snap, waiting for it to be stopped.
+		Exits with a non-zero value if the snap is not running or stop fails.
+
+		Examples:
+		  ghvmctl snap-terminate signal-desktop
+
+	snap-kill <snap name>
+		Kills the provided snap (using SIGKILL), and waits for completion.
+		Exits with a non-zero value if the snap is not running.
+
+		Examples:
+		  ghvmctl snap-kill signal-desktop
 
 	screenshot-full
 		Takes a full-screen screenshot of the virtual machine. Places the output
@@ -124,6 +146,12 @@ if [[ -z $command ]]; then
 	usage
 fi
 
+function check_deprecated_command() {
+	if  [[ "$1" == *-snap ]]; then
+		echo "$0: $1 is deprecated, use snap-${1%-snap} instead."
+	fi
+}
+
 case "$command" in
 "prepare")
 	prepare_vm
@@ -131,10 +159,16 @@ case "$command" in
 "exec")
 	exec_in_vm "$@"
 	;;
-"run-snap")
+"snap-run"|"run-snap")
+	check_deprecated_command "$command"
+	if exec_in_vm systemctl -q --user is-active "snap.$1.*"; then
+		echo "$1 is already running"
+		exit 1
+	fi
 	exec_in_vm "snap run $1 &>/home/ubuntu/$1.log &"
 	;;
-"install-snap")
+"snap-install"|"install-snap")
+	check_deprecated_command "$command"
 	snap_name="$1"
 	shift
 
@@ -160,6 +194,31 @@ case "$command" in
 				;;
 		esac
 	done
+	;;
+"snap-is-running")
+	snap_name="$1"
+	if ! exec_in_vm systemctl -q --user is-active "snap.$snap_name.*"; then
+		echo Process for "$snap_name" not running.
+		exit 1;
+	fi
+	;;
+"snap-terminate")
+	snap_name="$1"
+	if ! exec_in_vm systemctl -q --user is-active "snap.$snap_name.*"; then
+		echo Process for "$snap_name" not running.
+		exit 1;
+	fi
+	exec_in_vm systemctl --user stop "snap.$snap_name.*"
+	shift
+	;;
+"snap-kill")
+	snap_name="$1"
+	if ! exec_in_vm systemctl -q --user is-active "snap.$snap_name.*"; then
+		echo Process for "$snap_name" not running.
+		exit 1;
+	fi
+	exec_in_vm systemctl --user kill -s 9 "snap.$snap_name.*"
+	shift
 	;;
 "screenshot-full")
 	screenshot_full

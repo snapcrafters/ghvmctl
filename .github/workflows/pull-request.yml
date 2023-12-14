@@ -32,16 +32,25 @@ jobs:
 
           ghvmctl prepare
 
-          ghvmctl install-snap signal-desktop --channel candidate
-          ghvmctl install-snap terraform --revision 584
-          ghvmctl install-snap kubectl
+          ghvmctl snap-install signal-desktop --channel candidate
+          ghvmctl snap-install terraform --revision 584
+          ghvmctl snap-install kubectl
 
-          ghvmctl run-snap signal-desktop
-          sleep 2
+          # Check deprecated commands
+          ghvmctl install-snap hello
+          ghvmctl run-snap hello
+
+          ghvmctl snap-run signal-desktop
           ghvmctl screenshot-full
           ghvmctl screenshot-window
-          ghvmctl screenshot-full
-          ls -lht "$HOME"/ghvmctl-screenshots
+
+          ghvmctl snap-is-running signal-desktop
+          ghvmctl snap-is-running terraform && exit 1 || true
+
+          ghvmctl snap-terminate signal-desktop
+          ghvmctl snap-is-running signal-desktop && exit 1 || true
+          ghvmctl snap-kill kubectl && exit 1 || true
+
           ghvmctl exec "cat /home/ubuntu/signal-desktop.log"
 
       - name: Upload screenshots
