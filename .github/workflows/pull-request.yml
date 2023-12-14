@@ -52,3 +52,10 @@ jobs:
           ghvmctl snap-kill kubectl && exit 1 || true
 
           ghvmctl exec "cat /home/ubuntu/signal-desktop.log"
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v3
+        with:
+          name: screenshots
+          path: ~/ghvmctl-screenshots
+          if-no-files-found: error
