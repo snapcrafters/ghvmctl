@@ -64,7 +64,7 @@ screenshot_window() {
 	info "Taking a screenshot of the active window inside the VM"
 	mkdir -p "${SCREENSHOTS_PATH}"
 	# Take a screenshot of the active window in the VM
-	timestamp=$(date +'%Y-%m-%d_%H%M%S')
+	timestamp="$(date +'%Y-%m-%d_%H%M%S')"
 	exec_in_vm "gnome-screenshot -w -f /home/ubuntu/window.png"
 	# Pull the screenshot back to the host
 	output="screenshot-window-$timestamp.png"
