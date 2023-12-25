@@ -1,5 +1,5 @@
 name: ghvmctl
-version: 0.2.1
+version: 0.3.0
 summary: A utility for manipulating virtual machines during snap testing.
 license: Apache-2.0
 contact: https://github.com/jnsgruk/ghvmctl/issues
