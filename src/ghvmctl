@@ -17,7 +17,7 @@ SCREENSHOTS_PATH="${SNAP_REAL_HOME:-$PWD}/ghvmctl-screenshots"
 prepare_vm() {
 	info "Launching VM '${VM_NAME}' with LXD"
 	# Ensure we're using the correct remote
-	lxc remote rm images
+	lxc remote rm images || true
 	lxc remote add images https://images.lxd.canonical.com --protocol=simplestreams
 	# Launch the VM
 	lxc launch -q "images:ubuntu/${VM_SERIES}/desktop" "${VM_NAME}" --vm \
