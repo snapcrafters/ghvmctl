@@ -16,6 +16,7 @@ SCREENSHOTS_PATH="${SNAP_REAL_HOME:-$PWD}/ghvmctl-screenshots"
 # Starts a desktop VM and waits for the agent to be running inside.
 prepare_vm() {
 	info "Launching VM '${VM_NAME}' with LXD"
+  lxc remote add images https://images.lxd.canonical.com --protocol=simplestreams
 	lxc launch -q "images:ubuntu/${VM_SERIES}/desktop" "${VM_NAME}" --vm \
 		-c limits.cpu="${VM_CPUS}" \
 		-c limits.memory="${VM_MEM_GIB}GiB" \
