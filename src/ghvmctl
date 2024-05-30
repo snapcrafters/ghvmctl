@@ -5,7 +5,7 @@ info() { echo -e "\e[92m[+] $*\e[0m"; }
 
 # Default VM attributes - tuned for Github Actions runners by default
 VM_NAME="${VM_NAME:-test-vm}"
-VM_SERIES="${VM_SERIES:-22.04}"
+VM_SERIES="${VM_SERIES:-24.04}"
 VM_CPUS="${VM_CPUS:=1}"
 VM_MEM_GIB="${VM_MEM_GIB:=6}"
 VM_DISK_GIB="${VM_DISK_GIB:=12}"
