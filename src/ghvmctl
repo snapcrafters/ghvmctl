@@ -17,7 +17,7 @@ SCREENSHOTS_PATH="${SNAP_REAL_HOME:-$PWD}/ghvmctl-screenshots"
 prepare_vm() {
 	info "Launching VM '${VM_NAME}' with LXD"
 	# Ensure we're using the correct remote
-	lxc remote add canonical-images https://images.lxd.canonical.com --protocol=simplestreams
+	lxc remote add canonical-images https://images.lxd.canonical.com --protocol=simplestreams &>/dev/null || true
 	# Launch the VM
 	lxc launch -q "canonical-images:ubuntu/${VM_SERIES}/desktop" "${VM_NAME}" --vm \
 		-c limits.cpu="${VM_CPUS}" \
