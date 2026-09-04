@@ -196,19 +196,24 @@ case "$command" in
 		usage
 	fi
 
+	installed=false
 	eval set -- "$VALID_ARGS"
 	while true; do
 		case "$1" in
 			-c | --channel)
 				exec_in_vm "sudo snap install $snap_name --channel $2 --classic"
+				installed=true
 				shift 2
 				;;
 			-r | --revision)
 				exec_in_vm "sudo snap install $snap_name --revision $2 --classic"
+				installed=true
 				shift 2
 				;;
 			--)
-				exec_in_vm "sudo snap install $snap_name --classic"
+				if [[ $installed == false ]]; then
+					exec_in_vm "sudo snap install $snap_name --classic"
+				fi
 				shift
 				break
 				;;
