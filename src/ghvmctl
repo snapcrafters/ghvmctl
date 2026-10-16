@@ -35,9 +35,9 @@ prepare_vm() {
 	lxc exec "${VM_NAME}" -- runuser -u ubuntu -- \
 		sh -c 'echo yes > ~/.config/gnome-initial-setup-done'
 	lxc exec "${VM_NAME}" -- sh -c \
-		'rm /usr/lib/systemd/user/gnome-session.target.wants/gnome-initial-setup*'
+		'rm -f /usr/lib/systemd/user/gnome-session.target.wants/gnome-initial-setup*'
 	lxc exec "${VM_NAME}" -- sh -c \
-		'rm /etc/xdg/autostart/gnome-initial-setup*'
+		'rm -f /etc/xdg/autostart/gnome-initial-setup*'
 
 	# Push script runner into the VM
 	lxc -q file push "${GHVMCTL_RUNNER_PATH}/ghvmctl-runner" \
