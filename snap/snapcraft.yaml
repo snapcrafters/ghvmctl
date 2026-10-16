@@ -50,3 +50,4 @@ parts:
     organize:
       ghvmctl: opt/ghvmctl/ghvmctl
       ghvmctl-runner: opt/ghvmctl/ghvmctl-runner
+      ghvmctl-screenshot: opt/ghvmctl/ghvmctl-screenshot

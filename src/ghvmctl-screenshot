@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+kind="${1:?screen or window required}"
+case "$kind" in
+    screen) modifier=42 ;;
+    window) modifier=56 ;;
+    *) exit 2 ;;
+esac
+pictures="$(runuser -u ubuntu -- xdg-user-dir PICTURES)/Screenshots"
+install -d -o ubuntu -g ubuntu "$pictures"
+export YDOTOOL_SOCKET=/run/ghvmctl-ydotool.sock
+captured=false
+while IFS= read -r event; do
+    case "$event" in
+        'Setting up watches.') ;;
+        'Watches established.')
+            # Arm the file watch before sending Shift/Alt+Print.
+            ydotool key "$modifier:1" 99:1 99:0 "$modifier:0"
+            ;;
+        "$pictures/"*.png)
+            install -m 0644 -o ubuntu -g ubuntu "$event" "/home/ubuntu/$kind.png"
+            captured=true
+            ;;
+        *) printf '%s\n' "$event" >&2 ;;
+    esac
+done < <(LC_ALL=C inotifywait --timeout 15 --event close_write,moved_to \
+    --include '\.png$' --format '%w%f' "$pictures" 2>&1)
+[[ $captured == true ]]

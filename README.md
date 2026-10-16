@@ -46,6 +46,20 @@ jobs:
 
 [snapcrafters/ci]: https://github.com/snapcrafters/ci/main/setup-ghvmctl
 
+## Guest preparation and screenshots
+
+`prepare` waits for networking and the desktop session, installs `ydotool` and
+`inotify-tools`, and starts a root-only input daemon inside the disposable VM.
+Screenshots use GNOME's native shortcuts: Shift+Print for the screen and Alt+Print
+for the active window. A small shell helper arms a file watch, sends the shortcut
+with `ydotool`, and waits up to 15 seconds for a completed PNG before copying it
+to the usual output filename.
+
+No custom Python, GNOME extension, unsafe mode, input-group changes, or desktop
+restart is needed. Callers must ensure their application has mapped a window
+and has focus before capturing; successful capture is not a readiness probe.
+The VM user's GNOME screenshot bindings must retain their default shortcuts.
+
 ## How to contribute to this snap
 
 Thanks for your interest! Below you find instructions to help you contribute to this snap.
