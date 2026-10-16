@@ -29,6 +29,11 @@ prepare_vm() {
 		sleep 1
 	done
 
+	info "Waiting for VM networking"
+	# The agent can accept commands before D-Bus and NetworkManager have started.
+	lxc exec "${VM_NAME}" -- systemctl start NetworkManager
+	lxc exec "${VM_NAME}" -- nm-online --quiet --timeout=60
+
 	info "Installing utilities in VM"
 
 	# Try avoid gnome-initial-setup to start.
@@ -43,11 +48,23 @@ prepare_vm() {
 	lxc -q file push "${GHVMCTL_RUNNER_PATH}/ghvmctl-runner" \
 		"${VM_NAME}/bin/ghvmctl-runner"
 	lxc exec "${VM_NAME}" -- chmod 755 /bin/ghvmctl-runner
+	lxc -q file push "${GHVMCTL_RUNNER_PATH}/ghvmctl-screenshot" \
+		"${VM_NAME}/bin/ghvmctl-screenshot"
 
 	lxc exec "${VM_NAME}" -- sh -c \
 		"echo 'APT::Get::Assume-Yes \"true\";' > /etc/apt/apt.conf.d/90aptyes"
 	lxc exec "${VM_NAME}" -- apt-get update -qq
-	lxc exec "${VM_NAME}" -- apt-get install -q gnome-screenshot
+	lxc exec "${VM_NAME}" -- apt-get install -q ydotool inotify-tools
+	lxc exec "${VM_NAME}" -- modprobe uinput
+	lxc exec "${VM_NAME}" -- systemd-run --unit=ghvmctl-ydotool --collect \
+		/usr/bin/ydotoold --socket-path=/run/ghvmctl-ydotool.sock
+	lxc exec "${VM_NAME}" -- timeout 10 sh -c \
+		'until test -S /run/ghvmctl-ydotool.sock; do sleep 0.1; done'
+
+	# Wait for the desktop user's bus and Shell, without restarting the session.
+	lxc exec "${VM_NAME}" -- runuser -u ubuntu -- env \
+		DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus \
+		timeout 60 sh -c 'until gdbus wait --session --timeout=1 org.gnome.Shell 2>/dev/null; do sleep 1; done'
 
 	info "Configuring VM user settings"
 	exec_in_vm gsettings set org.gnome.desktop.lockdown disable-lock-screen true
@@ -69,7 +86,7 @@ screenshot_full() {
 	mkdir -p "${SCREENSHOTS_PATH}"
 	# Take a screenshot of the whole screen in the VM
 	timestamp="$(date +'%Y-%m-%d_%H%M%S')"
-	exec_in_vm "gnome-screenshot -f /home/ubuntu/screen.png"
+	lxc exec "${VM_NAME}" -- bash /bin/ghvmctl-screenshot screen
 	# Pull the screenshot back to the host
 	output="screenshot-screen-$timestamp.png"
 	lxc file pull "${VM_NAME}/home/ubuntu/screen.png" "${SCREENSHOTS_PATH}/$output"
@@ -83,7 +100,7 @@ screenshot_window() {
 	mkdir -p "${SCREENSHOTS_PATH}"
 	# Take a screenshot of the active window in the VM
 	timestamp="$(date +'%Y-%m-%d_%H%M%S')"
-	exec_in_vm "gnome-screenshot -w -f /home/ubuntu/window.png"
+	lxc exec "${VM_NAME}" -- bash /bin/ghvmctl-screenshot window
 	# Pull the screenshot back to the host
 	output="screenshot-window-$timestamp.png"
 	lxc file pull "${VM_NAME}/home/ubuntu/window.png" "${SCREENSHOTS_PATH}/$output"

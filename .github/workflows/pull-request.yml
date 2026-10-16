@@ -24,7 +24,15 @@ jobs:
           install: true
 
       - name: Setup LXD
-        uses: canonical/setup-lxd@v0.1.1
+        uses: canonical/setup-lxd@v1
+        with:
+          channel: 6/stable
+          group: runner
+
+      - name: Restart LXD with the configured socket group
+        run: |
+          sudo snap restart lxd
+          sudo lxd waitready
 
       - name: Test ghvmctl
         run: |
@@ -46,6 +54,8 @@ jobs:
           ghvmctl run-snap hello
 
           ghvmctl snap-run signal-desktop
+          # Native capture can succeed against the desktop before the app maps.
+          sleep 60
           ghvmctl screenshot-full
           ghvmctl screenshot-window
 
